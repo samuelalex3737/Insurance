@@ -97,7 +97,7 @@ def load_and_preprocess_data(uploaded_file=None):
         ]
         
         # Get the directory where the script is located
-        script_dir = os.path.dirname(os.path.abspath(_file_))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
         possible_paths.append(os.path.join(script_dir, 'Insurance.csv'))
         possible_paths.append(os.path.join(script_dir, 'data', 'Insurance.csv'))
         
@@ -117,26 +117,26 @@ def load_and_preprocess_data(uploaded_file=None):
             st.markdown("""
             ### How to fix this:
             
-            *Option 1:* Upload the file using the sidebar uploader
+            **Option 1:** Upload the file using the sidebar uploader
             
-            *Option 2:* Add Insurance.csv to your GitHub repository:
-            
+            **Option 2:** Add `Insurance.csv` to your GitHub repository:
+            ```
             your-repo/
             ├── app.py
             ├── Insurance.csv  ← Add here
             ├── requirements.txt
             └── ...
+            ```
             
-            
-            *Option 3:* Create a data folder and put the file there:
-            
+            **Option 3:** Create a `data` folder and put the file there:
+            ```
             your-repo/
             ├── app.py
             ├── data/
             │   └── Insurance.csv  ← Or here
             ├── requirements.txt
             └── ...
-            
+            ```
             """)
             st.stop()
     
@@ -234,10 +234,10 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 📋 Dataset Info")
     st.sidebar.info(f"""
-    *Total Records:* {len(df):,}
-    *Features:* {len(df.columns)}
-    *Approved Claims:* {df['CLAIM_STATUS'].sum():,}
-    *Repudiated Claims:* {(df['CLAIM_STATUS']==0).sum():,}
+    **Total Records:** {len(df):,}
+    **Features:** {len(df.columns)}
+    **Approved Claims:** {df['CLAIM_STATUS'].sum():,}
+    **Repudiated Claims:** {(df['CLAIM_STATUS']==0).sum():,}
     """)
     
     # Page routing (keep your existing code)
@@ -255,6 +255,9 @@ def main():
         geographic_analysis(df)
     elif page == "📉 Deep Drill-Down Analysis":
         deep_drilldown_analysis(df, df_encoded)
+
+
+
 
 
 def executive_overview(df):
