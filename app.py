@@ -91,7 +91,7 @@ st.markdown("""
 @st.cache_data
 def load_and_preprocess_data():
     """Load and preprocess the insurance dataset"""
-    df = pd.read_csv('/mnt/user-data/uploads/Insurance.csv')
+    df = pd.read_csv('Insurance.csv')
     
     # Clean numeric columns (remove commas)
     df['SUM_ASSURED'] = df['SUM_ASSURED'].astype(str).str.replace(',', '').astype(float)
