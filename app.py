@@ -1,15 +1,6 @@
 """
 Advanced Insurance Claims Analytics Dashboard
 =============================================
-Features:
-- Classification (Approved/Repudiated prediction) with drill-down analysis
-- Clustering (K-Means, DBSCAN, Hierarchical)
-- Regression (Sum Assured prediction)
-- Association Rule Mining (Apriori)
-- Interactive drill-down charts
-- Waterfall charts
-- Geographic visualizations
-- Confusion matrix deep analysis
 """
 
 import streamlit as st
@@ -19,6 +10,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import warnings
+import os  # Added for file path handling
+
 warnings.filterwarnings('ignore')
 
 # ML Libraries
@@ -47,7 +40,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Custom CSS (keep your existing CSS)
 st.markdown("""
 <style>
     .main-header {
@@ -89,9 +82,63 @@ st.markdown("""
 
 
 @st.cache_data
-def load_and_preprocess_data():
+def load_and_preprocess_data(uploaded_file=None):
     """Load and preprocess the insurance dataset"""
-    df = pd.read_csv('Insurance.csv')
+    
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+    else:
+        # Try different possible file paths
+        possible_paths = [
+            'Insurance.csv',
+            'data/Insurance.csv',
+            './Insurance.csv',
+            '../Insurance.csv',
+        ]
+        
+        # Get the directory where the script is located
+        script_dir = os.path.dirname(os.path.abspath(_file_))
+        possible_paths.append(os.path.join(script_dir, 'Insurance.csv'))
+        possible_paths.append(os.path.join(script_dir, 'data', 'Insurance.csv'))
+        
+        df = None
+        for path in possible_paths:
+            try:
+                df = pd.read_csv(path)
+                st.sidebar.success(f"✅ Loaded data from: {path}")
+                break
+            except FileNotFoundError:
+                continue
+            except Exception as e:
+                continue
+        
+        if df is None:
+            st.error("❌ Insurance.csv file not found!")
+            st.markdown("""
+            ### How to fix this:
+            
+            *Option 1:* Upload the file using the sidebar uploader
+            
+            *Option 2:* Add Insurance.csv to your GitHub repository:
+            
+            your-repo/
+            ├── app.py
+            ├── Insurance.csv  ← Add here
+            ├── requirements.txt
+            └── ...
+            
+            
+            *Option 3:* Create a data folder and put the file there:
+            
+            your-repo/
+            ├── app.py
+            ├── data/
+            │   └── Insurance.csv  ← Or here
+            ├── requirements.txt
+            └── ...
+            
+            """)
+            st.stop()
     
     # Clean numeric columns (remove commas)
     df['SUM_ASSURED'] = df['SUM_ASSURED'].astype(str).str.replace(',', '').astype(float)
@@ -117,7 +164,7 @@ def load_and_preprocess_data():
                                      bins=[0, 100000, 300000, 500000, 1000000, float('inf')],
                                      labels=['<1L', '1-3L', '3-5L', '5-10L', '>10L'])
     
-    # Region mapping for geographic visualization
+    # Region mapping
     state_region_map = {
         'Himachal Pradesh': 'North', 'Punjab': 'North', 'Haryana': 'North',
         'Jammu And Kashmir': 'North', 'Delhi': 'North', 'Uttarakhand': 'North',
@@ -156,13 +203,22 @@ def main():
     st.markdown('<h1 class="main-header">🏥 Insurance Claims Analytics Dashboard</h1>', 
                 unsafe_allow_html=True)
     
-    # Load data
-    df = load_and_preprocess_data()
-    df_encoded, label_encoders = create_encoded_features(df)
-    
     # Sidebar
     st.sidebar.image("https://img.icons8.com/color/96/000000/insurance.png", width=80)
     st.sidebar.title("Navigation")
+    
+    # File uploader
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 📁 Data Source")
+    uploaded_file = st.sidebar.file_uploader(
+        "Upload Insurance.csv",
+        type=['csv'],
+        help="Upload your insurance data CSV file"
+    )
+    
+    # Load data
+    df = load_and_preprocess_data(uploaded_file)
+    df_encoded, label_encoders = create_encoded_features(df)
     
     page = st.sidebar.radio(
         "Select Analysis Module",
@@ -178,12 +234,13 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 📋 Dataset Info")
     st.sidebar.info(f"""
-    **Total Records:** {len(df):,}
-    **Features:** {len(df.columns)}
-    **Approved Claims:** {df['CLAIM_STATUS'].sum():,}
-    **Repudiated Claims:** {(df['CLAIM_STATUS']==0).sum():,}
+    *Total Records:* {len(df):,}
+    *Features:* {len(df.columns)}
+    *Approved Claims:* {df['CLAIM_STATUS'].sum():,}
+    *Repudiated Claims:* {(df['CLAIM_STATUS']==0).sum():,}
     """)
     
+    # Page routing (keep your existing code)
     if page == "📊 Executive Overview":
         executive_overview(df)
     elif page == "🎯 Classification Analysis":
